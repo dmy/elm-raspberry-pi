@@ -11,7 +11,7 @@
 ## Last version
 **elm** + **elm-format** (currently elm 0.19.1 and elm-format 0.8.2):
 ```
-curl -L https://github.com/dmy/elm-raspberry-pi/raw/master/elm.tar.gz | sudo tar zxC /usr/local/bin
+curl -L https://github.com/dmy/elm-raspberry-pi/releases/latest/download/elm.tar.gz | sudo tar zxC /usr/local/bin
 ```
 
 ## Specific versions
