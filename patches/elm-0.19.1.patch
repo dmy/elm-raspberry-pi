@@ -1,0 +1,663 @@
+From 9d4863b87bb9f386b9e1d8329bcf4d8ff47f40ef Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?R=C3=A9mi=20Lef=C3=A8vre?= <rlefevre@gmail.com>
+Date: Wed, 27 Nov 2019 17:51:05 +0100
+Subject: Use Int64 for Int type and disable SMP because of ghc bug
+
+---
+ builder/src/Reporting/Exit.hs                 |   6 +-
+ compiler/src/AST/Canonical.hs                 |   5 +-
+ compiler/src/AST/Optimized.hs                 |   3 +-
+ compiler/src/AST/Source.hs                    |   5 +-
+ compiler/src/Generate/JavaScript.hs           |   2 +-
+ compiler/src/Generate/JavaScript/Builder.hs   |   5 +-
+ .../src/Generate/JavaScript/Expression.hs     |  10 +-
+ compiler/src/Nitpick/PatternMatches.hs        |   3 +-
+ compiler/src/Optimize/DecisionTree.hs         |   3 +-
+ compiler/src/Optimize/Port.hs                 |   2 +-
+ compiler/src/Parse/Number.hs                  |  15 +-
+ compiler/src/Parse/String.hs                  |   4 +-
+ compiler/src/Reporting/Doc.hs                 |   3 +-
+ compiler/src/Reporting/Error/Json.hs          |   2 +-
+ compiler/src/Reporting/Error/Syntax.hs        |   3 +-
+ elm.cabal                                     |   2 +-
+ terminal/src/Diff.hs                          |   2 +-
+ worker/elm.cabal                              | 207 ------------------
+ 18 files changed, 42 insertions(+), 240 deletions(-)
+ delete mode 100644 worker/elm.cabal
+
+diff --git a/builder/src/Reporting/Exit.hs b/builder/src/Reporting/Exit.hs
+index 22a006ae..6b749c23 100644
+--- a/builder/src/Reporting/Exit.hs
++++ b/builder/src/Reporting/Exit.hs
+@@ -1531,7 +1531,7 @@ toHttpErrorReport title err context =
+           in
+           toHttpReport (context ++ ", so I tried to fetch:") url
+             [ D.fillSep $
+-                ["But","it","came","back","as",D.red (D.fromInt code)]
++                ["But","it","came","back","as",D.red (D.fromInt $ fromIntegral code)]
+                 ++ map D.fromChars (words (BS_UTF8.toString message))
+             , D.reflow $
+                 "This may mean some online endpoint changed in an unexpected way, so if does not\
+@@ -1579,8 +1579,8 @@ toRedirectDoc response =
+     (HTTP.Status code message) = HTTP.responseStatus response
+   in
+   case List.lookup HTTP.hLocation (HTTP.responseHeaders response) of
+-    Just loc -> D.red (D.fromInt code) <> " - " <> D.fromChars (BS_UTF8.toString loc)
+-    Nothing  -> D.red (D.fromInt code) <> " - " <> D.fromChars (BS_UTF8.toString message)
++    Just loc -> D.red (D.fromInt $ fromIntegral code) <> " - " <> D.fromChars (BS_UTF8.toString loc)
++    Nothing  -> D.red (D.fromInt $ fromIntegral code) <> " - " <> D.fromChars (BS_UTF8.toString message)
+ 
+ 
+ 
+diff --git a/compiler/src/AST/Canonical.hs b/compiler/src/AST/Canonical.hs
+index 78a335f6..519890c9 100644
+--- a/compiler/src/AST/Canonical.hs
++++ b/compiler/src/AST/Canonical.hs
+@@ -53,6 +53,7 @@ So it is clear why the data is kept around.
+ 
+ import Control.Monad (liftM, liftM2, liftM3, liftM4, replicateM)
+ import Data.Binary
++import Data.Int (Int64)
+ import qualified Data.List as List
+ import qualified Data.Map as Map
+ import Data.Name (Name)
+@@ -86,7 +87,7 @@ data Expr_
+   | VarOperator Name ModuleName.Canonical Name Annotation -- CACHE real name for optimization
+   | Chr ES.String
+   | Str ES.String
+-  | Int Int
++  | Int Int64
+   | Float EF.Float
+   | List [Expr]
+   | Negate Expr
+@@ -154,7 +155,7 @@ data Pattern_
+   | PBool Union Bool
+   | PChr ES.String
+   | PStr ES.String
+-  | PInt Int
++  | PInt Int64
+   | PCtor
+       { _p_home :: ModuleName.Canonical
+       , _p_type :: Name
+diff --git a/compiler/src/AST/Optimized.hs b/compiler/src/AST/Optimized.hs
+index 9fd3a9d1..13d440f4 100644
+--- a/compiler/src/AST/Optimized.hs
++++ b/compiler/src/AST/Optimized.hs
+@@ -23,6 +23,7 @@ module AST.Optimized
+ 
+ import Control.Monad (liftM, liftM2, liftM3, liftM4)
+ import Data.Binary (Binary, get, put, getWord8, putWord8)
++import Data.Int (Int64)
+ import qualified Data.Map as Map
+ import qualified Data.Name as Name
+ import Data.Name (Name)
+@@ -48,7 +49,7 @@ data Expr
+   = Bool Bool
+   | Chr ES.String
+   | Str ES.String
+-  | Int Int
++  | Int Int64
+   | Float EF.Float
+   | VarLocal Name
+   | VarGlobal Global
+diff --git a/compiler/src/AST/Source.hs b/compiler/src/AST/Source.hs
+index c7ac0a12..314e117e 100644
+--- a/compiler/src/AST/Source.hs
++++ b/compiler/src/AST/Source.hs
+@@ -24,6 +24,7 @@ module AST.Source
+   where
+ 
+ 
++import Data.Int (Int64)
+ import Data.Name (Name)
+ import qualified Data.Name as Name
+ 
+@@ -45,7 +46,7 @@ type Expr = A.Located Expr_
+ data Expr_
+   = Chr ES.String
+   | Str ES.String
+-  | Int Int
++  | Int Int64
+   | Float EF.Float
+   | Var VarType Name
+   | VarQual VarType Name Name
+@@ -99,7 +100,7 @@ data Pattern_
+   | PCons Pattern Pattern
+   | PChr ES.String
+   | PStr ES.String
+-  | PInt Int
++  | PInt Int64
+ 
+ 
+ 
+diff --git a/compiler/src/Generate/JavaScript.hs b/compiler/src/Generate/JavaScript.hs
+index d8116f33..16bcc2b5 100644
+--- a/compiler/src/Generate/JavaScript.hs
++++ b/compiler/src/Generate/JavaScript.hs
+@@ -396,7 +396,7 @@ generateEnum mode global@(Opt.Global home name) index =
+         Expr.codeToExpr (Expr.generateCtor mode global index 0)
+ 
+       Mode.Prod _ ->
+-        JS.Int (Index.toMachine index)
++        JS.Int $ fromIntegral (Index.toMachine index)
+ 
+ 
+ 
+diff --git a/compiler/src/Generate/JavaScript/Builder.hs b/compiler/src/Generate/JavaScript/Builder.hs
+index fde32caf..9700b07d 100644
+--- a/compiler/src/Generate/JavaScript/Builder.hs
++++ b/compiler/src/Generate/JavaScript/Builder.hs
+@@ -14,6 +14,7 @@ module Generate.JavaScript.Builder
+ -- They did the hard work of reading the spec to figure out
+ -- how all the types should fit together.
+ 
++import Data.Int (Int64)
+ import Prelude hiding (lines)
+ import qualified Data.List as List
+ import qualified Data.ByteString as BS
+@@ -44,7 +45,7 @@ import qualified Json.Encode as Json
+ data Expr
+   = String Builder
+   | Float Builder
+-  | Int Int
++  | Int Int64
+   | Bool Bool
+   | Null
+   | Json Json.Value
+@@ -342,7 +343,7 @@ fromExpr level@(Level indent nextLevel@(Level deeperIndent _)) grouping expressi
+       ( One, float )
+ 
+     Int n ->
+-      ( One, B.intDec n )
++      ( One, B.int64Dec n )
+ 
+     Bool bool ->
+       ( One, if bool then "true" else "false" )
+diff --git a/compiler/src/Generate/JavaScript/Expression.hs b/compiler/src/Generate/JavaScript/Expression.hs
+index ba7ab366..78a5e24a 100644
+--- a/compiler/src/Generate/JavaScript/Expression.hs
++++ b/compiler/src/Generate/JavaScript/Expression.hs
+@@ -83,7 +83,7 @@ generate mode expression =
+           JsExpr $ JS.Ref (JsName.fromGlobal home name)
+ 
+         Mode.Prod _ ->
+-          JsExpr $ JS.Int (Index.toMachine index)
++          JsExpr $ JS.Int $ fromIntegral (Index.toMachine index)
+ 
+     Opt.VarBox (Opt.Global home name) ->
+       JsExpr $ JS.Ref $
+@@ -271,7 +271,7 @@ generateCtor mode (Opt.Global home name) index arity =
+     ctorTag =
+       case mode of
+         Mode.Dev _ -> JS.String (Name.toBuilder name)
+-        Mode.Prod _ -> JS.Int (ctorToInt home name index)
++        Mode.Prod _ -> JS.Int $ fromIntegral (ctorToInt home name index)
+   in
+   generateFunction argNames $ JsExpr $ JS.Object $
+     (JsName.dollar, ctorTag) : map (\n -> (n, JS.Ref n)) argNames
+@@ -570,7 +570,7 @@ cmp idealOp backupOp backupInt left right =
+   else
+     JS.Infix backupOp
+       (JS.Call (JS.Ref (JsName.fromKernel Name.utils "cmp")) [left, right])
+-      (JS.Int backupInt)
++      (JS.Int $ fromIntegral backupInt)
+ 
+ 
+ isLiteral :: JS.Expr -> Bool
+@@ -887,7 +887,7 @@ generateIfTest mode root (path, test) =
+       strictEq tag $
+         case mode of
+           Mode.Dev _ -> JS.String (Name.toBuilder name)
+-          Mode.Prod _ -> JS.Int (ctorToInt home name index)
++          Mode.Prod _ -> JS.Int $ fromIntegral (ctorToInt home name index)
+ 
+     DT.IsBool True ->
+       value
+@@ -932,7 +932,7 @@ generateCaseValue mode test =
+     DT.IsCtor home name index _ _ ->
+       case mode of
+         Mode.Dev _ -> JS.String (Name.toBuilder name)
+-        Mode.Prod _ -> JS.Int (ctorToInt home name index)
++        Mode.Prod _ -> JS.Int $ fromIntegral (ctorToInt home name index)
+ 
+     DT.IsInt int ->
+       JS.Int int
+diff --git a/compiler/src/Nitpick/PatternMatches.hs b/compiler/src/Nitpick/PatternMatches.hs
+index f03db1f8..7000c010 100644
+--- a/compiler/src/Nitpick/PatternMatches.hs
++++ b/compiler/src/Nitpick/PatternMatches.hs
+@@ -17,6 +17,7 @@ http://moscova.inria.fr/~maranget/papers/warn/warn.pdf
+ 
+ -}
+ 
++import Data.Int (Int64)
+ import qualified Data.List as List
+ import qualified Data.Map as Map
+ import qualified Data.Maybe as Maybe
+@@ -43,7 +44,7 @@ data Pattern
+ data Literal
+   = Chr ES.String
+   | Str ES.String
+-  | Int Int
++  | Int Int64
+   deriving (Eq)
+ 
+ 
+diff --git a/compiler/src/Optimize/DecisionTree.hs b/compiler/src/Optimize/DecisionTree.hs
+index 466758f7..a95d2ba2 100644
+--- a/compiler/src/Optimize/DecisionTree.hs
++++ b/compiler/src/Optimize/DecisionTree.hs
+@@ -23,6 +23,7 @@ as SML/NJ to get nice trees.
+ import Control.Arrow (second)
+ import Control.Monad (liftM, liftM2, liftM5)
+ import Data.Binary
++import Data.Int (Int64)
+ import qualified Data.List as List
+ import qualified Data.Maybe as Maybe
+ import qualified Data.Name as Name
+@@ -76,7 +77,7 @@ data Test
+   | IsCons
+   | IsNil
+   | IsTuple
+-  | IsInt Int
++  | IsInt Int64
+   | IsChr ES.String
+   | IsStr ES.String
+   | IsBool Bool
+diff --git a/compiler/src/Optimize/Port.hs b/compiler/src/Optimize/Port.hs
+index 5426db91..5357ba96 100644
+--- a/compiler/src/Optimize/Port.hs
++++ b/compiler/src/Optimize/Port.hs
+@@ -279,7 +279,7 @@ indexAndThen i tipe decoder =
+       return $
+         Opt.Call andThen
+           [ Opt.Function [Name.fromVarIndex i] decoder
+-          , Opt.Call index [ Opt.Int i, typeDecoder ]
++          , Opt.Call index [ Opt.Int (fromIntegral i), typeDecoder ]
+           ]
+ 
+ 
+diff --git a/compiler/src/Parse/Number.hs b/compiler/src/Parse/Number.hs
+index 107853d0..c3d59e9a 100644
+--- a/compiler/src/Parse/Number.hs
++++ b/compiler/src/Parse/Number.hs
+@@ -11,6 +11,7 @@ module Parse.Number
+   where
+ 
+ 
++import Data.Int (Int64)
+ import Data.Word (Word8)
+ import Foreign.Ptr (Ptr, plusPtr, minusPtr)
+ 
+@@ -42,7 +43,7 @@ isDecimalDigit word =
+ 
+ 
+ data Number
+-  = Int Int
++  = Int Int64
+   | Float EF.Float
+ 
+ 
+@@ -98,7 +99,7 @@ number toExpectation toError =
+ --
+ data Outcome
+   = Err (Ptr Word8) E.Number
+-  | OkInt (Ptr Word8) Int
++  | OkInt (Ptr Word8) Int64
+   | OkFloat (Ptr Word8)
+ 
+ 
+@@ -106,7 +107,7 @@ data Outcome
+ -- CHOMP INT
+ 
+ 
+-chompInt :: Ptr Word8 -> Ptr Word8 -> Int -> Outcome
++chompInt :: Ptr Word8 -> Ptr Word8 -> Int64 -> Outcome
+ chompInt !pos end !n =
+   if pos >= end then
+ 
+@@ -137,7 +138,7 @@ chompInt !pos end !n =
+ -- CHOMP FRACTION
+ 
+ 
+-chompFraction :: Ptr Word8 -> Ptr Word8 -> Int -> Outcome
++chompFraction :: Ptr Word8 -> Ptr Word8 -> Int64 -> Outcome
+ chompFraction pos end n =
+   let
+     !pos1 = plusPtr pos 1
+@@ -254,12 +255,12 @@ chompHexInt pos end =
+ -- Return -2 if it has BAD digits
+ 
+ {-# INLINE chompHex #-}
+-chompHex :: Ptr Word8 -> Ptr Word8 -> (# Ptr Word8, Int #)
++chompHex :: Ptr Word8 -> Ptr Word8 -> (# Ptr Word8, Int64 #)
+ chompHex pos end =
+   chompHexHelp pos end (-1) 0
+ 
+ 
+-chompHexHelp :: Ptr Word8 -> Ptr Word8 -> Int -> Int -> (# Ptr Word8, Int #)
++chompHexHelp :: Ptr Word8 -> Ptr Word8 -> Int64 -> Int64 -> (# Ptr Word8, Int64 #)
+ chompHexHelp pos end answer accumulator =
+   if pos >= end then
+     (# pos, answer #)
+@@ -275,7 +276,7 @@ chompHexHelp pos end answer accumulator =
+ 
+ 
+ {-# INLINE stepHex #-}
+-stepHex :: Ptr Word8 -> Ptr Word8 -> Word8 -> Int -> Int
++stepHex :: Ptr Word8 -> Ptr Word8 -> Word8 -> Int64 -> Int64
+ stepHex pos end word acc
+   | 0x30 {-0-} <= word && word <= 0x39 {-9-} = 16 * acc + fromIntegral (word - 0x30 {-0-})
+   | 0x61 {-a-} <= word && word <= 0x66 {-f-} = 16 * acc + 10 + fromIntegral (word - 0x61 {-a-})
+diff --git a/compiler/src/Parse/String.hs b/compiler/src/Parse/String.hs
+index f23e4116..740ef7ac 100644
+--- a/compiler/src/Parse/String.hs
++++ b/compiler/src/Parse/String.hs
+@@ -307,10 +307,10 @@ eatUnicode pos end row col =
+         E.BadUnicodeLength
+           (3 + fromIntegral (minusPtr newPos pos))
+           numDigits
+-          code
++          (fromIntegral code)
+ 
+     else
+-      EscapeUnicode (numDigits + 4) code
++      EscapeUnicode (numDigits + 4) (fromIntegral code)
+ 
+ 
+ {-# NOINLINE singleQuote #-}
+diff --git a/compiler/src/Reporting/Doc.hs b/compiler/src/Reporting/Doc.hs
+index 26c15517..3f157389 100644
+--- a/compiler/src/Reporting/Doc.hs
++++ b/compiler/src/Reporting/Doc.hs
+@@ -45,6 +45,7 @@ module Reporting.Doc
+ 
+ 
+ import Prelude hiding (cycle)
++import Data.Int (Int64)
+ import qualified Data.List as List
+ import Data.Monoid ((<>))
+ import qualified Data.Name as Name
+@@ -85,7 +86,7 @@ fromPackage pkg =
+   P.text (Pkg.toChars pkg)
+ 
+ 
+-fromInt :: Int -> P.Doc
++fromInt :: Int64 -> P.Doc
+ fromInt n =
+   P.text (show n)
+ 
+diff --git a/compiler/src/Reporting/Error/Json.hs b/compiler/src/Reporting/Error/Json.hs
+index 9d8bdf93..cabd729f 100644
+--- a/compiler/src/Reporting/Error/Json.hs
++++ b/compiler/src/Reporting/Error/Json.hs
+@@ -340,5 +340,5 @@ expectationToReport path source context (A.Region start end) expectation reason
+     TArrayPair len ->
+       toSnippet "EXPECTING PAIR"
+         ["an",D.green "ARRAY","with",D.green "TWO","entries."
+-        ,"This","array","has",D.fromInt len, if len == 1 then "element." else "elements."
++        ,"This","array","has",D.fromInt (fromIntegral len), if len == 1 then "element." else "elements."
+         ]
+diff --git a/compiler/src/Reporting/Error/Syntax.hs b/compiler/src/Reporting/Error/Syntax.hs
+index 1070172c..501db07a 100644
+--- a/compiler/src/Reporting/Error/Syntax.hs
++++ b/compiler/src/Reporting/Error/Syntax.hs
+@@ -48,6 +48,7 @@ module Reporting.Error.Syntax
+ import Prelude hiding (Char, String)
+ import qualified Data.Char as Char
+ import qualified Data.Name as Name
++import Data.Int (Int64)
+ import Data.Word (Word16)
+ import Numeric (showHex)
+ 
+@@ -470,7 +471,7 @@ data Escape
+ 
+ data Number
+   = NumberEnd
+-  | NumberDot Int
++  | NumberDot Int64
+   | NumberHexDigit
+   | NumberNoLeadingZero
+ 
+diff --git a/elm.cabal b/elm.cabal
+index bf1cfcf0..728cfd2b 100644
+--- a/elm.cabal
++++ b/elm.cabal
+@@ -38,7 +38,7 @@ Executable elm
+     if flag(dev)
+         ghc-options: -O0 -Wall -Werror
+     else
+-        ghc-options: -O2 -rtsopts -threaded "-with-rtsopts=-N -qg -A128m"
++        ghc-options: -O2 -rtsopts -threaded "-with-rtsopts=-A128m"
+         -- add -eventlog for (elm make src/Main.elm +RTS -l; threadscope elm.eventlog)
+         -- https://www.oreilly.com/library/view/parallel-and-concurrent/9781449335939/
+ 
+diff --git a/terminal/src/Diff.hs b/terminal/src/Diff.hs
+index 49231536..ce85ced3 100644
+--- a/terminal/src/Diff.hs
++++ b/terminal/src/Diff.hs
+@@ -345,7 +345,7 @@ binopToDoc localizer name (Docs.Binop _ tipe associativity (Docs.Precedence n))
+     "(" <> D.fromName name <> ")" <+> ":" <+> typeDoc localizer tipe <> D.black details
+   where
+     details =
+-      "    (" <> D.fromName assoc <> "/" <> D.fromInt n <> ")"
++      "    (" <> D.fromName assoc <> "/" <> D.fromInt (fromIntegral n) <> ")"
+ 
+     assoc =
+       case associativity of
+diff --git a/worker/elm.cabal b/worker/elm.cabal
+deleted file mode 100644
+index 5a4a56ba..00000000
+--- a/worker/elm.cabal
++++ /dev/null
+@@ -1,207 +0,0 @@
+-
+-Name: elm
+-Version: 0.19.1
+-
+-Synopsis:
+-    Perform tasks for various Elm websites
+-
+-Description:
+-    Compile code for the online editor. Maybe do more someday!
+-
+-Homepage: https://elm-lang.org
+-
+-License: BSD3
+-License-file: ../LICENSE
+-
+-Author:     Evan Czaplicki
+-Maintainer: info@elm-lang.org
+-Copyright:  Copyright (c) 2019-present, Evan Czaplicki
+-
+-Category: Compiler, Language
+-
+-Cabal-version: >=1.9
+-Build-type: Simple
+-
+-source-repository head
+-    type:     git
+-    location: git://github.com/elm/compiler.git
+-
+-
+-Flag dev {
+-  Description: Turn off optimization and make warnings errors
+-  Default: False
+-}
+-
+-
+-Executable worker
+-    if flag(dev)
+-        ghc-options: -O0 -Wall -Werror
+-    else
+-        ghc-options: -O2 -rtsopts -threaded "-with-rtsopts=-N -qg"
+-
+-    Hs-Source-Dirs:
+-        src
+-        ../compiler/src
+-        ../builder/src
+-        ../terminal/src
+-
+-    Main-Is:
+-        Main.hs
+-
+-    other-modules:
+-        Artifacts
+-        Cors
+-        Endpoint.Compile
+-        Endpoint.Repl
+-
+-        AST.Canonical
+-        AST.Optimized
+-        AST.Source
+-        AST.Utils.Binop
+-        AST.Utils.Shader
+-        AST.Utils.Type
+-        BackgroundWriter
+-        Build
+-        Canonicalize.Effects
+-        Canonicalize.Environment
+-        Canonicalize.Environment.Dups
+-        Canonicalize.Environment.Foreign
+-        Canonicalize.Environment.Local
+-        Canonicalize.Expression
+-        Canonicalize.Module
+-        Canonicalize.Pattern
+-        Canonicalize.Type
+-        Compile
+-        Data.Bag
+-        Data.Index
+-        Data.Map.Utils
+-        Data.Name
+-        Data.NonEmptyList
+-        Data.OneOrMore
+-        Data.Utf8
+-        Deps.Registry
+-        Deps.Solver
+-        Deps.Website
+-        Elm.Compiler.Imports
+-        Elm.Compiler.Type
+-        Elm.Compiler.Type.Extract
+-        Elm.Constraint
+-        Elm.Details
+-        Elm.Docs
+-        Elm.Float
+-        Elm.Interface
+-        Elm.Kernel
+-        Elm.Licenses
+-        Elm.Magnitude
+-        Elm.ModuleName
+-        Elm.Outline
+-        Elm.Package
+-        Elm.String
+-        Elm.Version
+-        File
+-        Generate
+-        Generate.Html
+-        Generate.JavaScript
+-        Generate.JavaScript.Builder
+-        Generate.JavaScript.Expression
+-        Generate.JavaScript.Functions
+-        Generate.JavaScript.Name
+-        Generate.Mode
+-        Http
+-        Json.Decode
+-        Json.Encode
+-        Json.String
+-        Nitpick.Debug
+-        Nitpick.PatternMatches
+-        Optimize.Case
+-        Optimize.DecisionTree
+-        Optimize.Expression
+-        Optimize.Module
+-        Optimize.Names
+-        Optimize.Port
+-        Parse.Declaration
+-        Parse.Expression
+-        Parse.Keyword
+-        Parse.Module
+-        Parse.Number
+-        Parse.Pattern
+-        Parse.Primitives
+-        Parse.Shader
+-        Parse.Space
+-        Parse.String
+-        Parse.Symbol
+-        Parse.Type
+-        Parse.Variable
+-        Paths_elm
+-        Repl
+-        Reporting
+-        Reporting.Annotation
+-        Reporting.Doc
+-        Reporting.Error
+-        Reporting.Error.Canonicalize
+-        Reporting.Error.Docs
+-        Reporting.Error.Import
+-        Reporting.Error.Json
+-        Reporting.Error.Main
+-        Reporting.Error.Pattern
+-        Reporting.Error.Syntax
+-        Reporting.Error.Type
+-        Reporting.Exit
+-        Reporting.Exit.Help
+-        Reporting.Render.Code
+-        Reporting.Render.Type
+-        Reporting.Render.Type.Localizer
+-        Reporting.Report
+-        Reporting.Result
+-        Reporting.Suggest
+-        Reporting.Task
+-        Reporting.Warning
+-        Stuff
+-        Type.Constrain.Expression
+-        Type.Constrain.Module
+-        Type.Constrain.Pattern
+-        Type.Error
+-        Type.Instantiate
+-        Type.Occurs
+-        Type.Solve
+-        Type.Type
+-        Type.Unify
+-        Type.UnionFind
+-
+-    Build-depends:
+-        aeson,
+-        ansi-terminal >= 0.8 && < 0.9,
+-        ansi-wl-pprint >= 0.6.8 && < 0.7,
+-        base >=4.11 && <5,
+-        binary >= 0.8 && < 0.9,
+-        bytestring >= 0.9 && < 0.11,
+-        containers >= 0.5.8.2 && < 0.6,
+-        directory >= 1.2.3.0 && < 2.0,
+-        edit-distance >= 0.2 && < 0.3,
+-        filelock,
+-        filepath >= 1 && < 2.0,
+-        ghc-prim >= 0.5.2,
+-        haskeline,
+-        HTTP >= 4000.2.5 && < 4000.4,
+-        http-client >= 0.6 && < 0.7,
+-        http-client-tls >= 0.3 && < 0.4,
+-        http-types >= 0.12 && < 1.0,
+-        io-streams,
+-        language-glsl >= 0.3,
+-        mtl >= 2.2.1 && < 3,
+-        network >= 2.4 && < 2.7,
+-        network-uri,
+-        parsec,
+-        process,
+-        raw-strings-qq,
+-        scientific,
+-        SHA,
+-        snap-core,
+-        snap-server,
+-        template-haskell,
+-        text,
+-        time >= 1.9.1,
+-        unordered-containers,
+-        utf8-string,
+-        vector,
+-        zip-archive
+-- 
+2.20.1
+
