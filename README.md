@@ -11,10 +11,7 @@ The release includes:
 
 See [Releases](https://github.com/dmy/elm-raspberry-pi/releases/) to install specific older versions.
 
-Built on Raspberry Pi 4 Model B with Raspbian GNU/Linux 10 (32 bits).
-
-Tested on:
-* Raspberry Pi 4 Model B with Raspbian GNU/Linux 10.
+Built and tested on Raspberry Pi 4 Model B with Raspbian GNU/Linux 10 (32 bits).
 
 *Please report any success or failure on others ARM platforms.*
 
