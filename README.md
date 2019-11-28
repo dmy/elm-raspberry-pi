@@ -24,7 +24,7 @@ Tested on:
 ## Support
 As these binaries are unofficial, please always confirm an Elm bug on a platform officially supported before opening an issue at https://github.com/elm.
 
-If you are not sure or if the bug is specific to ARM, report it here instead.
+If you are not sure or if the bug is specific to ARM, report it [here](https://github.com/dmy/elm-raspberry-pi/issues) instead.
 
 ## Building from source
 On Raspbian GNU/Linux 10:
