@@ -1,12 +1,13 @@
 # Unofficial Elm for Raspberry Pi
 
 ## Installation
-* **elm** 0.19.1
-* **elm-format** 0.8.2
-* **elm-json** 0.2.3
 ```
 curl -L https://github.com/dmy/elm-raspberry-pi/releases/latest/download/elm.tar.gz | sudo tar zxC /usr/local/bin
 ```
+The release includes:
+* **elm** 0.19.1
+* **elm-format** 0.8.2
+* **elm-json** 0.2.3
 
 See [Releases](https://github.com/dmy/elm-raspberry-pi/releases/) to install specific older versions.
 
