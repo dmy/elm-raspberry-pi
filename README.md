@@ -5,9 +5,9 @@
 curl -L https://github.com/dmy/elm-raspberry-pi/releases/latest/download/elm.tar.gz | sudo tar zxC /usr/local/bin
 ```
 The last release includes:
-* **elm** 0.19.1
-* **elm-format** 0.8.2
-* **elm-json** 0.2.3
+* [**elm**](https://github.com/elm/compiler) 0.19.1
+* [**elm-format**](https://github.com/avh4/elm-format) 0.8.2
+* [**elm-json**](https://github.com/zwilias/elm-json) 0.2.3
 
 See [Releases](https://github.com/dmy/elm-raspberry-pi/releases/) to install specific older versions.
 
@@ -39,4 +39,5 @@ On Raspbian GNU/Linux 10:
 - `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
 - `git clone https://github.com/zwilias/elm-json.git`
 - `cd elm-json`
+- Checkout the version tag
 - `cargo build --release`
