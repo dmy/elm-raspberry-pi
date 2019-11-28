@@ -19,7 +19,7 @@ Built and tested on Raspberry Pi 4 Model B with Raspbian GNU/Linux 10 (32 bits).
 * Because [SMP is disabled by mistake in ghc on ARMv7](https://gitlab.haskell.org/ghc/ghc/issues/13007), the compiler will use a single core.
 
 ## Support
-As these binaries are unofficial, please always confirm an Elm bug on a platform officially supported before opening an issue at https://github.com/elm.
+As these binaries are unofficial, please always confirm a bug on a platform officially supported before opening an issue at the official repositories.
 
 If you are not sure or if the bug is specific to ARM, report it [here](https://github.com/dmy/elm-raspberry-pi/issues) instead.
 
