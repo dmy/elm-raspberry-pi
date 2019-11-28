@@ -26,6 +26,7 @@ As these binaries are unofficial, please always confirm an Elm bug on a platform
 If you are not sure or if the bug is specific to ARM, report it here instead.
 
 # Building from source
+On Raspbian GNU/Linux 10:
 - Clone the official `elm` or `elm-format` repository
 - Checkout the version tag
 - Apply the patches included in this repository using `git am`
