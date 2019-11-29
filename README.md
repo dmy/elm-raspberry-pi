@@ -22,10 +22,10 @@ Built and tested on Raspberry Pi 4 Model B with Raspbian GNU/Linux 10 (32 bits).
 To use Elm tools like [elm-test](https://www.npmjs.com/package/elm-test) or
 [elm-doc-preview](https://www.npmjs.com/package/elm-doc-preview),
 you will need a more recent version of Node.js.  
-The following command will currently install Node.js v11:
+The following command will install Node.js v12:
 ```
 sudo apt-get update
-curl -sL https://deb.nodesource.com/setup_11.x | sudo bash -
+curl -sL https://deb.nodesource.com/setup_12.x | sudo bash -
 sudo apt-get install -y nodejs
 ```
 Is is advised to configure npm to store packages in a user directory.  
