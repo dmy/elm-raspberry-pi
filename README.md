@@ -91,12 +91,12 @@ All `elm/core` tests pass successfully:
 elm-test 0.19.1
 ---------------
 
-Running 1268 tests. To reproduce these results, run: elm-test --fuzz 100 --seed 306473447917537 /home/pi/dev/core/tests/tests/Main.elm
+Running 1268 tests. To reproduce these results, run: elm-test --fuzz 100 --seed 132427106450815 /home/pi/dev/core/tests/tests/Main.elm
 
 
 TEST RUN PASSED
 
-Duration: 139092 ms
+Duration: 31305 ms
 Passed:   1268
 Failed:   0
 ```
