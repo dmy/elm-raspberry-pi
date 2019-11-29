@@ -10,7 +10,8 @@ The last release includes:
 * [**elm-json**](https://github.com/zwilias/elm-json) 0.2.3
 * [**elmi-to-json**](https://github.com/stoeffel/elmi-to-json) 1.3.0
 
-See [Releases](https://github.com/dmy/elm-raspberry-pi/releases/) to install specific older versions.
+See [Releases](https://github.com/dmy/elm-raspberry-pi/releases/) to install
+specific older versions.
 
 Built and tested on Raspberry Pi 4 Model B with Raspbian GNU/Linux 10 (32 bits).
 
@@ -18,14 +19,16 @@ Built and tested on Raspberry Pi 4 Model B with Raspbian GNU/Linux 10 (32 bits).
 
 ## Node.js
 
-For tools like elm-test, you will need a more recent version of Node.js.
+To use Elm tools like [elm-test](https://www.npmjs.com/package/elm-test) or
+[elm-doc-preview](https://www.npmjs.com/package/elm-doc-preview),
+you will need a more recent version of Node.js.  
 The following command will currently install Node.js v11:
 ```
 sudo apt-get update
 curl -sL https://deb.nodesource.com/setup_11.x | sudo bash -
 sudo apt-get install -y nodejs
 ```
-Is is advised to configure npm to store packages in a user directory.
+Is is advised to configure npm to store packages in a user directory.  
 Add to `~/.bashrc`:
 ```
 NPM_PACKAGES="$HOME/.npm-packages"
@@ -46,19 +49,22 @@ You can install `elm-test` globally:
 npm install -g elm-test
 ```
 But it won't run without an `elmi-to-json` binary suitable for the platform,
-which is not available upstream, so you have to copy manually the one provided by this release
-to the expected location:
+which is not available upstream, so you have to copy manually the one provided
+by this release to the expected location:
 ```
 cp /usr/local/bin/elmi-to-json $(npm config get prefix)/lib/node_modules/elm-test/node_modules/elmi-to-json/bin/elmi-to-json
 ```
 
 ## Known issues
-* Because [SMP is disabled by mistake in ghc on ARMv7](https://gitlab.haskell.org/ghc/ghc/issues/13007), the compiler will use a single core.
+* Because [SMP is disabled by mistake in ghc on ARMv7](https://gitlab.haskell.org/ghc/ghc/issues/13007),
+the compiler will use a single core.
 
 ## Support
-As these binaries are unofficial, please always confirm a bug on a platform officially supported before opening an issue at the official repositories.
+As these binaries are unofficial, please always confirm a bug on a platform
+officially supported before opening an issue at the official repositories.
 
-If you are not sure or if the bug is specific to ARM, report it [here](https://github.com/dmy/elm-raspberry-pi/issues) instead.
+If you are not sure or if the bug is specific to ARM, report it
+[here](https://github.com/dmy/elm-raspberry-pi/issues) instead.
 
 ## Building from source
 On Raspbian GNU/Linux 10:
