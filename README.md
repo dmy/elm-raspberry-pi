@@ -13,7 +13,11 @@ The last release includes:
 See [Releases](https://github.com/dmy/elm-raspberry-pi/releases/) to install
 specific older versions.
 
-Built and tested on Raspberry Pi 4 Model B with Raspbian GNU/Linux 10 (32 bits).
+## Compatibility 
+Built and tested on **Raspberry Pi 4 Model B with Raspbian GNU/Linux 10 Buster (32 bits)**.
+
+Reported to also work on:
+* Raspberry Pi 2 with Debian 10 Buster
 
 *Please report any success or failure on others ARM platforms.*
 
@@ -28,7 +32,7 @@ sudo apt-get update
 curl -sL https://deb.nodesource.com/setup_12.x | sudo bash -
 sudo apt-get install -y nodejs
 ```
-Is is advised to configure npm to store packages in a user directory.  
+It is advised to configure npm to store packages in a user directory.  
 Add to `~/.bashrc`:
 ```
 NPM_PACKAGES="$HOME/.npm-packages"
@@ -67,7 +71,7 @@ If you are not sure or if the bug is specific to ARM, report it
 [here](https://github.com/dmy/elm-raspberry-pi/issues) instead.
 
 ## Building from source
-On Raspbian GNU/Linux 10:
+On Raspbian GNU/Linux 10 Buster:
 
 ### elm / elm-format / elmi-to-json
 - `sudo apt-get install ghc cabal-install`
