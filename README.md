@@ -16,8 +16,9 @@ specific older versions.
 ## Compatibility 
 Built and tested on **Raspberry Pi 4 Model B with Raspbian GNU/Linux 10 Buster (32 bits)**.
 
-Reported to also work on:
+Reported to work on:
 * Raspberry Pi 2 with Debian 10 Buster
+* Raspberry Pi 4 with Ubuntu 19.10 (armhf+raspi3)
 
 *Please report any success or failure on others ARM platforms.*
 
