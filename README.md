@@ -1,6 +1,6 @@
 # Unofficial Elm for Raspberry Pi
 
-## Installation
+## Install
 ```
 curl -L https://github.com/dmy/elm-raspberry-pi/releases/latest/download/elm.tar.gz | sudo tar zxC /usr/local/bin
 ```
@@ -23,6 +23,11 @@ specific older versions.
 If you have an aarch64 system with a 64 bits operating system, you will need 32 bits compatibility libraries and kernel option.
 
 *Please report any success or failure on others Arm platforms.*
+
+## Uninstall
+```
+$ sudo rm /usr/local/bin/elm{,-format,-json,i-to-json}
+```
 
 ## Node.js
 
