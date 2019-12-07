@@ -14,18 +14,15 @@ See [Releases](https://github.com/dmy/elm-raspberry-pi/releases/) to install
 specific older versions.
 
 ## Compatibility 
-Built and tested on Raspberry Pi 4 Model B with Raspbian GNU/Linux 10 Buster (32 bits).
-
-**It should work on all Raspberry Pis with Raspbian 10 Buster**, and more generally all Debian 10 based systems.
-
-It will **not work** on Raspbian/Debian 8 Jesse and 9 Stretch because some linked libraries are not compatible.
-
-It has also been reported to work on:
-* Raspberry Pi 4 with Ubuntu 19.10 (armhf+raspi3)
+* Built and tested on Raspberry Pi 4 Model B with Raspbian GNU/Linux 10 Buster (32 bits).
+* **It should work on all Raspberry Pis with Raspbian 10 Buster**, and more generally all Debian 10 based Arm systems.
+* It will **not work** on Raspbian/Debian 8 Jesse and 9 Stretch because some linked libraries are not compatible.
+* It has also been reported to work on:
+    - Raspberry Pi 4 with Ubuntu 19.10 (armhf+raspi3)
 
 If you have an aarch64 system with a 64 bits operating system, you will need 32 bits compatibility libraries and kernel option.
 
-*Please report any success or failure on others ARM platforms.*
+*Please report any success or failure on others Arm platforms.*
 
 ## Node.js
 
