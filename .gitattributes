@@ -1,4 +1,5 @@
 elm binary
 elm-format binary
 elm-json binary
+elmi-to-json
 *.tar.gz binary
