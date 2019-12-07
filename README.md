@@ -7,7 +7,7 @@ curl -L https://github.com/dmy/elm-raspberry-pi/releases/latest/download/elm.tar
 The last release includes:
 * [**elm**](https://github.com/elm/compiler) 0.19.1
 * [**elm-format**](https://github.com/avh4/elm-format) 0.8.2
-* [**elm-json**](https://github.com/zwilias/elm-json) 0.2.3
+* [**elm-json**](https://github.com/zwilias/elm-json) 0.2.4
 * [**elmi-to-json**](https://github.com/stoeffel/elmi-to-json) 1.3.0 (needed by `elm-test`)
 
 See [Releases](https://github.com/dmy/elm-raspberry-pi/releases/) to install
