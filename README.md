@@ -38,18 +38,17 @@ The following command will install Node.js v10 and `npm`:
 ```
 sudo apt-get update
 sudo apt-get install nodejs npm
-npm install -g npm@latest
 ```
-Then logout/login.
 
 It is advised to configure npm to store packages in a user directory.  
 Add to `~/.bashrc`:
 ```
 NPM_PACKAGES="$HOME/.npm-packages"
-PATH="$NPM_PACKAGES/bin:$PATH"
+export PATH="$NPM_PACKAGES/bin:$PATH"
 # Unset manpath so we can inherit from /etc/manpath via the `manpath` command
 unset MANPATH  # delete if you already modified MANPATH elsewhere in your configuration
-MANPATH="$NPM_PACKAGES/share/man:$(manpath)"
+export MANPATH="$NPM_PACKAGES/share/man:$(manpath)"
+unset NPM_PACKAGES
 ```
 and run
 ```
@@ -57,16 +56,22 @@ npm config set prefix ~/.npm-packages
 ```
 Then logout/login.
 
+You probably want to update to the latest npm version at this point:
+```
+npm install -g npm@latest
+```
+Then logout/login again.
+
 ## elm-test
 You can install `elm-test` globally:
 ```
 npm install -g elm-test --ignore-scripts
 ```
 But it won't run without an `elmi-to-json` binary suitable for the platform,
-which is not available upstream, so you have to copy manually the one provided
-by this release to the expected location:
+which is not available upstream.
+So we will make a link, in the expected location, to the one provided by this release:
 ```
-cp /usr/local/bin/elmi-to-json $(npm config get prefix)/lib/node_modules/elm-test/node_modules/elmi-to-json/bin/elmi-to-json
+ln -sft $(npm config get prefix)/lib/node_modules/elm-test/node_modules/elmi-to-json/bin /usr/local/bin/elmi-to-json
 ```
 
 ## Known issues
