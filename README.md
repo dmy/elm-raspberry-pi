@@ -33,13 +33,15 @@ $ sudo rm /usr/local/bin/elm{,-format,-json,i-to-json}
 
 To use Elm tools like [elm-test](https://www.npmjs.com/package/elm-test) or
 [elm-doc-preview](https://www.npmjs.com/package/elm-doc-preview),
-you will need a more recent version of Node.js.  
-The following command will install Node.js v12:
+you will need Node.js.  
+The following command will install Node.js v10 and `npm`:
 ```
 sudo apt-get update
-curl -sL https://deb.nodesource.com/setup_12.x | sudo bash -
-sudo apt-get install -y nodejs
+sudo apt-get install nodejs npm
+npm install -g npm@latest
 ```
+Then logout/login.
+
 It is advised to configure npm to store packages in a user directory.  
 Add to `~/.bashrc`:
 ```
