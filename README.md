@@ -60,7 +60,7 @@ Then logout/login.
 ## elm-test
 You can install `elm-test` globally:
 ```
-npm install -g elm-test
+npm install -g elm-test --ignore-scripts
 ```
 But it won't run without an `elmi-to-json` binary suitable for the platform,
 which is not available upstream, so you have to copy manually the one provided
